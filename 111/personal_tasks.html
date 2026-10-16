@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f7f8fc">
+  <title>日常｜個人行程與任務管理</title>
+  <style>
+    :root { color-scheme: light; --ink:#20243a; --muted:#85899c; --purple:#7058e8; --line:#eeeff5; --surface:#fff; --canvas:#f7f8fc; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--canvas); color:var(--ink); font-family:Inter,"Noto Sans TC","Microsoft JhengHei",sans-serif; font-size:14px; -webkit-font-smoothing:antialiased; }
+    button,input,select,textarea { font:inherit; }
+    button { cursor:pointer; }
+    .topbar { height:72px; display:flex; align-items:center; justify-content:space-between; padding:0 max(5vw,calc((100vw - 1180px)/2)); background:var(--surface); border-bottom:1px solid #f0f0f5; }
+    .brand { display:flex; align-items:center; gap:11px; font-size:18px; font-weight:750; letter-spacing:-.5px; }
+    .brand-mark { display:grid; place-items:center; width:34px; height:34px; color:white; background:linear-gradient(145deg,#917df6,#644bdf); border-radius:11px; font-size:17px; }
+    .brand small { display:block; margin-top:1px; color:#9a9dae; font-size:10px; font-weight:500; letter-spacing:1px; }
+    .top-right { display:flex; align-items:center; gap:18px; color:#777b8e; font-size:12px; }
+    .avatar { display:grid; place-items:center; width:34px; height:34px; color:#6653cf; background:#efedff; border-radius:50%; font-weight:700; }
+    main { width:min(1180px,90%); margin:39px auto 60px; }
+    .welcome { display:flex; justify-content:space-between; align-items:end; margin-bottom:26px; }
+    .eyebrow { margin:0 0 8px; color:var(--purple); font-size:11px; font-weight:750; letter-spacing:1.4px; }
+    h1 { margin:0; font-size:clamp(25px,4vw,32px); letter-spacing:-1px; }
+    .welcome p { margin:9px 0 0; color:var(--muted); font-size:13px; }
+    .date-card { padding:11px 16px; background:#fff; border:1px solid var(--line); border-radius:12px; color:#656a7e; font-size:12px; box-shadow:0 3px 12px #282a3b05; }
+    .date-card span { margin-right:7px; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:21px; }
+    .stat { display:flex; align-items:center; gap:14px; padding:17px 19px; background:var(--surface); border:1px solid var(--line); border-radius:14px; }
+    .stat-icon { display:grid; place-items:center; width:42px; height:42px; border-radius:13px; font-size:18px; }
+    .stat-icon.purple { background:#f0edff; } .stat-icon.blue { background:#eaf4ff; } .stat-icon.green { background:#e9f8ef; }
+    .stat-label { margin-bottom:4px; color:var(--muted); font-size:11px; }
+    .stat-value { font-size:20px; font-weight:750; } .stat-value small { margin-left:4px; color:#9699a8; font-size:11px; font-weight:450; }
+    .layout { display:grid; grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr); gap:19px; align-items:start; }
+    .column { display:grid; gap:19px; }
+    .panel { background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:0 4px 16px #282a3b04; overflow:hidden; }
+    .panel-heading { display:flex; justify-content:space-between; align-items:center; padding:19px 21px 15px; }
+    .heading-title { display:flex; align-items:center; gap:9px; margin:0; font-size:15px; font-weight:700; }
+    .heading-icon { font-size:16px; } .heading-note { color:#a0a2b0; font-size:11px; }
+    .agenda { padding:1px 21px 18px; }
+    .event { position:relative; display:grid; grid-template-columns:74px 14px 1fr auto; gap:12px; align-items:center; min-height:77px; border-bottom:1px solid #f1f1f6; }
+    .event:last-child { border-bottom:0; }
+    .event-time { color:#72768a; font-size:11px; font-weight:650; }
+    .event-marker { width:10px; height:10px; border:2px solid #8571ef; border-radius:50%; box-shadow:0 0 0 3px #f1efff; }
+    .event:nth-child(2) .event-marker { border-color:#55a9e8; box-shadow:0 0 0 3px #eef7ff; }
+    .event:nth-child(3) .event-marker { border-color:#48b882; box-shadow:0 0 0 3px #eef9f2; }
+    .event-name { margin-bottom:5px; font-size:13px; font-weight:650; }
+    .event-meta { color:#989bac; font-size:11px; }
+    .event-tag { padding:5px 9px; background:#f2efff; border-radius:7px; color:#725fda; font-size:10px; white-space:nowrap; }
+    .event:nth-child(2) .event-tag { color:#408cc2; background:#eff8ff; }
+    .event:nth-child(3) .event-tag { color:#32885e; background:#eff9f2; }
+
+    .tasks { padding:0 21px 15px; }
+    .task { display:grid; grid-template-columns:20px 1fr auto; align-items:center; gap:11px; min-height:65px; border-bottom:1px solid #f1f1f6; }
+    .task:last-child { border-bottom:0; }
+    .task-check { width:17px; height:17px; margin:0; accent-color:var(--purple); cursor:pointer; }
+    .task-name { font-size:12px; font-weight:600; transition:color .2s; }
+    .task.completed .task-name { color:#a4a6b2; text-decoration:line-through; }
+    .task-due { margin-top:4px; color:#9a9cac; font-size:10px; }
+    .status { padding:5px 9px; border-radius:7px; font-size:10px; white-space:nowrap; }
+    .status.pending { color:#b17724; background:#fff6e8; } .status.progress { color:#477bc1; background:#edf5ff; } .status.done { color:#35845a; background:#edf8f0; }
+    .form-panel .panel-heading { padding-bottom:16px; }
+    .form-body { display:grid; gap:13px; padding:0 21px 20px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .field label { display:block; margin-bottom:7px; color:#62667a; font-size:11px; font-weight:650; }
+    .field input,.field select,.field textarea { width:100%; padding:10px 11px; color:var(--ink); background:#fff; border:1px solid #e9eaf1; border-radius:9px; outline:none; font-size:11px; transition:border-color .2s,box-shadow .2s; }
+    .field input:focus,.field select:focus,.field textarea:focus { border-color:#a99bf4; box-shadow:0 0 0 3px #7058e814; }
+    .field textarea { min-height:62px; resize:vertical; }
+    .field input::placeholder,.field textarea::placeholder { color:#b5b7c3; }
+    .submit-button { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; padding:11px; color:white; background:linear-gradient(100deg,#8069ef,#684fdf); border:0; border-radius:9px; font-size:12px; font-weight:650; box-shadow:0 4px 10px #7058e82a; transition:transform .15s,box-shadow .15s; }
+    .submit-button:hover { transform:translateY(-1px); box-shadow:0 6px 14px #7058e83b; }
+    .empty-note { display:none; padding:16px 0 4px; color:#9396a6; text-align:center; font-size:11px; }
+    .footer { margin-top:22px; color:#a3a5b1; text-align:center; font-size:10px; }
+    @media (max-width:760px) {
+      .topbar { height:62px; padding:0 5%; } .top-right>span { display:none; }
+      main { width:90%; margin-top:28px; } .layout { grid-template-columns:1fr; }
+      .stats { gap:9px; } .stat { gap:9px; padding:13px 10px; } .stat-icon { width:34px; height:34px; font-size:15px; }
+      .stat-value { font-size:17px; } .stat-value small { font-size:10px; } .date-card { padding:9px 10px; font-size:10px; }
+    }
+    @media (max-width:440px) {
+      .welcome { align-items:start; gap:10px; } .date-card { max-width:130px; line-height:1.6; }
+      .stats { grid-template-columns:1fr; } .stat { padding:11px 14px; }
+      .event { grid-template-columns:61px 14px 1fr; gap:9px; padding:12px 0; }
+      .event-tag { grid-column:3; justify-self:start; margin-top:-13px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">✦</span><span>日常<small>MY DAY, MY WAY</small></span></div>
+    <div class="top-right"><span>個人任務與行程管理</span><div class="avatar" aria-label="個人帳戶">林</div></div>
+  </header>
+  <main>
+    <section class="welcome" aria-labelledby="page-title">
+      <div><p class="eyebrow">PERSONAL DASHBOARD</p><h1 id="page-title">早安，今天也加油！</h1><p>整理好每一件小事，讓今天過得更從容。</p></div>
+      <div class="date-card"><span>◷</span><time id="today-date"></time></div>
+    </section>
+    <section class="stats" aria-label="今日摘要">
+      <article class="stat"><div class="stat-icon purple">▦</div><div><div class="stat-label">今日行程</div><div class="stat-value"><span id="event-count">3</span><small>個安排</small></div></div></article>
+      <article class="stat"><div class="stat-icon blue">☑</div><div><div class="stat-label">待辦事項</div><div class="stat-value"><span id="task-count">3</span><small>項任務</small></div></div></article>
+      <article class="stat"><div class="stat-icon green">✓</div><div><div class="stat-label">已完成</div><div class="stat-value"><span id="done-count">1</span><small>項完成</small></div></div></article>
+    </section>
+    <div class="layout">
+      <div class="column">
+        <section class="panel" aria-labelledby="agenda-title">
+          <div class="panel-heading"><h2 class="heading-title" id="agenda-title"><span class="heading-icon">🗓️</span>今日行程</h2><span class="heading-note">照著自己的步調前進</span></div>
+          <div class="agenda" id="agenda-list">
+            <article class="event" data-start="09:00"><time class="event-time" datetime="09:00">09:00 — 10:00</time><span class="event-marker" aria-hidden="true"></span><div><div class="event-name">晨間規劃與閱讀</div><div class="event-meta">☕ 開啟充實的一天</div></div><span class="event-tag">個人時間</span></article>
+            <article class="event" data-start="13:30"><time class="event-time" datetime="13:30">13:30 — 14:30</time><span class="event-marker" aria-hidden="true"></span><div><div class="event-name">專案進度討論</div><div class="event-meta">📍 線上會議</div></div><span class="event-tag">工作</span></article>
+            <article class="event" data-start="18:00"><time class="event-time" datetime="18:00">18:00 — 19:00</time><span class="event-marker" aria-hidden="true"></span><div><div class="event-name">運動與放鬆</div><div class="event-meta">🏃 記得照顧自己</div></div><span class="event-tag">健康</span></article>
+          </div>
+          <div class="empty-note" id="empty-note">還沒有行程，新增一筆安排吧！</div>
+        </section>
+        <section class="panel" aria-labelledby="tasks-title">
+          <div class="panel-heading"><h2 class="heading-title" id="tasks-title"><span class="heading-icon">✍️</span>待辦事項</h2><span class="heading-note">完成一項，前進一步</span></div>
+          <div class="tasks" id="task-list">
+            <label class="task"><input class="task-check" type="checkbox" aria-label="標記完成：回覆重要郵件"><span><span class="task-name">回覆重要郵件</span><span class="task-due">今天 · 上午</span></span><span class="status pending">待處理</span></label>
+            <label class="task"><input class="task-check" type="checkbox" aria-label="標記完成：整理本週工作進度"><span><span class="task-name">整理本週工作進度</span><span class="task-due">今天 · 下午</span></span><span class="status progress">進行中</span></label>
+            <label class="task completed"><input class="task-check" type="checkbox" checked aria-label="標記未完成：補充日用品"><span><span class="task-name">補充日用品</span><span class="task-due">今天 · 已完成</span></span><span class="status done">已完成</span></label>
+          </div>
+        </section>
+      </div>
+      <section class="panel form-panel" aria-labelledby="form-title">
+        <div class="panel-heading"><h2 class="heading-title" id="form-title"><span class="heading-icon">✚</span>新增行程</h2><span class="heading-note">規劃一段專屬時間</span></div>
+        <form class="form-body" id="event-form">
+          <div class="field"><label for="event-name">行程名稱</label><input id="event-name" name="name" type="text" placeholder="例如：和朋友喝咖啡" required maxlength="50"></div>
+          <div class="form-row">
+            <div class="field"><label for="event-start">開始時間</label><input id="event-start" name="start" type="time" value="10:00" required></div>
+            <div class="field"><label for="event-end">結束時間</label><input id="event-end" name="end" type="time" value="11:00" required></div>
+          </div>
+          <div class="field"><label for="event-category">行程類別</label><select id="event-category" name="category"><option>個人時間</option><option>工作</option><option>健康</option><option>學習</option><option>其他</option></select></div>
+          <div class="field"><label for="event-location">地點</label><input id="event-location" name="location" type="text" placeholder="輸入地點或線上會議" maxlength="60"></div>
+          <div class="field"><label for="event-note">備註</label><textarea id="event-note" name="note" placeholder="寫下需要記得的小細節……" maxlength="180"></textarea></div>
+          <button class="submit-button" type="submit"><span aria-hidden="true">＋</span>加入今日行程</button>
+        </form>
+      </section>
+    </div>
+    <footer class="footer">把時間留給重要的事 · 日常 Personal Planner</footer>
+  </main>
+
+  <script>
+    const today = new Date();
+    document.getElementById('today-date').textContent = new Intl.DateTimeFormat('zh-TW', {
+      year:'numeric', month:'long', day:'numeric', weekday:'long'
+    }).format(today);
+
+    const taskList = document.getElementById('task-list');
+    const updateTaskCounts = () => {
+      const tasks = [...taskList.querySelectorAll('.task')];
+      const completed = tasks.filter(task => task.querySelector('.task-check').checked).length;
+      document.getElementById('task-count').textContent = tasks.length;
+      document.getElementById('done-count').textContent = completed;
+    };
+    taskList.addEventListener('change', event => {
+      if (!event.target.matches('.task-check')) return;
+      const task = event.target.closest('.task');
+      const status = task.querySelector('.status');
+      const due = task.querySelector('.task-due');
+      const completed = event.target.checked;
+      task.classList.toggle('completed', completed);
+      status.textContent = completed ? '已完成' : '待處理';
+      status.className = `status ${completed ? 'done' : 'pending'}`;
+      due.textContent = completed ? '今天 · 已完成' : '今天 · 待處理';
+      updateTaskCounts();
+    });
+
+    const form = document.getElementById('event-form');
+    const agenda = document.getElementById('agenda-list');
+    const eventCount = document.getElementById('event-count');
+    const emptyNote = document.getElementById('empty-note');
+    const escapeHTML = value => value.replace(/[&<>"']/g, char => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    })[char]);
+    const formatTime = value => {
+      const [hour, minute] = value.split(':').map(Number);
+      return `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
+    };
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      const data = new FormData(form);
+      const start = data.get('start');
+      const end = data.get('end');
+      if (end <= start) {
+        const endInput = document.getElementById('event-end');
+        endInput.setCustomValidity('結束時間必須晚於開始時間');
+        endInput.reportValidity();
+        endInput.setCustomValidity('');
+        return;
+      }
+      const name = escapeHTML(data.get('name').trim());
+      const category = escapeHTML(data.get('category'));
+      const location = data.get('location').trim();
+      const note = data.get('note').trim();
+      const meta = location ? `📍 ${escapeHTML(location)}` : (note ? `✎ ${escapeHTML(note)}` : '✦ 已加入今日安排');
+      const item = document.createElement('article');
+      item.className = 'event';
+      item.dataset.start = start;
+      item.innerHTML = `<time class="event-time" datetime="${start}">${formatTime(start)} — ${formatTime(end)}</time><span class="event-marker" aria-hidden="true"></span><div><div class="event-name">${name}</div><div class="event-meta">${meta}</div></div><span class="event-tag">${category}</span>`;
+      agenda.appendChild(item);
+      [...agenda.querySelectorAll('.event')].sort((a,b) => a.dataset.start.localeCompare(b.dataset.start)).forEach(row => agenda.appendChild(row));
+      eventCount.textContent = agenda.querySelectorAll('.event').length;
+      emptyNote.style.display = 'none';
+      form.reset();
+      document.getElementById('event-start').value = '10:00';
+      document.getElementById('event-end').value = '11:00';
+      document.getElementById('event-name').focus();
+    });
+    updateTaskCounts();
+  </script>
+</body>
+</html>
+echo "# 2222" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/ahrysikxnddjsk-code/2222.git
+git push -u origin main
